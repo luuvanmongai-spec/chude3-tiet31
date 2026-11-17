@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chủ đề 3 – Nhờ máy làm hộ: được gì và mất gì</title>
+<style>
+:root{--bg:#050816;--cy:#3df5ff;--vi:#8a5cff;--gr:#3dffa2;--rd:#ff4466;--am:#ffb020;--tx:#e8f4ff;--pn:rgba(10,20,48,.78)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:"Segoe UI","Be Vietnam Pro",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
+canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#app{position:relative;z-index:1;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))}
+.screen{display:none;width:100%;max-width:980px;animation:in .5s both}.screen.on{display:block}
+@keyframes in{from{opacity:0;transform:scale(.97)}}
+.panel{background:var(--pn);border:1.5px solid rgba(61,245,255,.55);border-radius:18px;padding:clamp(18px,4vw,36px);box-shadow:0 0 40px rgba(61,245,255,.22),inset 0 0 50px rgba(138,92,255,.12);backdrop-filter:blur(6px);position:relative}
+.panel::before,.panel::after{content:"";position:absolute;width:30px;height:30px;border:3px solid var(--cy);filter:drop-shadow(0 0 6px var(--cy))}
+.panel::before{left:-3px;top:-3px;border-right:0;border-bottom:0;border-radius:18px 0 0 0}
+.panel::after{right:-3px;bottom:-3px;border-left:0;border-top:0;border-radius:0 0 18px 0}
+h1{font-size:clamp(30px,7vw,60px);line-height:1.1;font-weight:800;color:#fff;text-shadow:0 0 28px rgba(61,245,255,.8);letter-spacing:.5px}
+h2{font-size:clamp(20px,4vw,30px);color:var(--cy);margin:10px 0 18px;font-weight:700}
+.sub{font-size:clamp(17px,2.6vw,22px);line-height:1.5;color:#bcd3ee}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}
+.rule{border:1px solid rgba(138,92,255,.7);border-radius:12px;padding:12px;text-align:center;background:rgba(138,92,255,.12)}
+.rule b{display:block;font-size:clamp(26px,6vw,40px);color:var(--am);text-shadow:0 0 16px rgba(255,176,32,.6)}
+.rule span{font-size:clamp(14px,2.4vw,18px)}
+label{display:block;font-size:18px;margin:14px 0 6px;color:var(--cy);font-weight:600}
+input{width:100%;font:inherit;font-size:clamp(18px,3vw,22px);padding:14px 16px;border-radius:12px;border:1.5px solid rgba(61,245,255,.5);background:rgba(3,8,24,.85);color:#fff;outline:none}
+input:focus{border-color:var(--cy);box-shadow:0 0 18px rgba(61,245,255,.5)}
+.fields{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.err{color:var(--rd);min-height:24px;margin-top:10px;font-size:17px}
+.btn{font:inherit;font-weight:800;font-size:clamp(18px,3vw,24px);color:#03111f;background:linear-gradient(90deg,var(--cy),var(--gr));border:0;border-radius:14px;padding:16px 28px;cursor:pointer;box-shadow:0 0 26px rgba(61,245,255,.6);transition:transform .15s;min-height:56px}
+.btn:active{transform:scale(.96)}.btn.sec{background:transparent;color:var(--cy);border:2px solid var(--cy);box-shadow:none}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+#hud{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:clamp(16px,3vw,22px);font-weight:700;margin-bottom:10px}
+#hud .chip{padding:6px 14px;border:1px solid rgba(61,245,255,.6);border-radius:999px;background:rgba(61,245,255,.1)}
+#bar{height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:14px}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--vi),var(--cy));box-shadow:0 0 14px var(--cy);transition:width .5s}
+#core{display:flex;align-items:center;gap:clamp(12px,3vw,28px);margin-bottom:16px}
+#timer{position:relative;flex:none;width:clamp(110px,26vw,170px);aspect-ratio:1}
+#timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+#timer circle{fill:none;stroke-width:11}
+#ring{stroke:var(--gr);stroke-linecap:round;stroke-dasharray:565.5;stroke-dashoffset:0;filter:drop-shadow(0 0 10px currentColor)}
+#timer .num{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(46px,11vw,78px);font-weight:900;font-variant-numeric:tabular-nums;color:var(--gr);text-shadow:0 0 22px currentColor}
+#timer.warn .num{color:var(--am)}#timer.warn #ring{stroke:var(--am)}
+#timer.crit .num{color:var(--rd);animation:pulse .5s infinite alternate}#timer.crit #ring{stroke:var(--rd)}
+@keyframes pulse{to{transform:scale(1.18)}}
+#q{font-size:clamp(20px,3.6vw,30px);line-height:1.4;font-weight:700;color:#fff}
+#opts{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:860px){#opts{grid-template-columns:1fr 1fr}}
+.opt{font:inherit;text-align:left;display:flex;gap:14px;align-items:center;font-size:clamp(17px,2.8vw,23px);line-height:1.35;color:var(--tx);background:rgba(8,16,40,.85);border:1.5px solid rgba(138,92,255,.75);border-radius:14px;padding:14px 16px;cursor:pointer;min-height:68px;transition:.15s}
+.opt:hover:not(:disabled){border-color:var(--cy);box-shadow:0 0 20px rgba(61,245,255,.45);transform:translateY(-2px)}
+.opt .l{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:rgba(138,92,255,.4);border:1.5px solid var(--vi)}
+.opt.ok{background:rgba(61,255,162,.2);border-color:var(--gr);box-shadow:0 0 28px rgba(61,255,162,.6)}.opt.ok .l{background:var(--gr);color:#031}
+.opt.no{background:rgba(255,68,102,.2);border-color:var(--rd);box-shadow:0 0 28px rgba(255,68,102,.6);animation:shake .4s}.opt.no .l{background:var(--rd)}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.opt:disabled{cursor:default}
+#fb{display:none;margin-top:16px;border-radius:14px;padding:16px;font-size:clamp(16px,2.6vw,21px);line-height:1.5;border:1.5px solid}
+#fb.ok{display:block;border-color:var(--gr);background:rgba(61,255,162,.12)}#fb.no{display:block;border-color:var(--rd);background:rgba(255,68,102,.12)}
+#fb strong{display:block;font-size:1.25em;margin-bottom:4px}
+#flash{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity .5s}
+#flash.ok{opacity:1;box-shadow:inset 0 0 120px 30px rgba(61,255,162,.55)}#flash.no{opacity:1;box-shadow:inset 0 0 120px 30px rgba(255,68,102,.6)}
+#snd{position:fixed;right:12px;top:max(12px,env(safe-area-inset-top));z-index:9;width:48px;height:48px;border-radius:50%;border:1.5px solid var(--cy);background:rgba(5,8,22,.8);color:var(--cy);font-size:22px;cursor:pointer}
+#score{font-size:clamp(80px,22vw,170px);font-weight:900;line-height:1;color:var(--am);text-shadow:0 0 40px rgba(255,176,32,.8)}
+#score small{font-size:.35em;color:#fff}
+.who{font-size:clamp(20px,3.6vw,30px);font-weight:700}
+.rank{font-size:clamp(22px,4vw,32px);color:var(--gr);font-weight:800;margin:8px 0}
+#rev{margin-top:18px;display:grid;gap:8px;max-height:340px;overflow:auto;padding-right:4px}
+.rv{border-left:6px solid;border-radius:8px;padding:10px 12px;background:rgba(255,255,255,.06);font-size:clamp(15px,2.4vw,18px);line-height:1.45}
+.rv.ok{border-color:var(--gr)}.rv.no{border-color:var(--rd)}.rv b{color:var(--cy)}
+@media(max-width:560px){.rules{grid-template-columns:1fr}.fields{grid-template-columns:1fr}#core{flex-direction:column;align-items:stretch;text-align:left}#timer{margin:0 auto}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div id="flash"></div>
+<button id="snd" aria-label="Bật tắt âm thanh">🔊</button>
+<div id="app">
+
+<section class="screen on" id="s0"><div class="panel">
+<h1>Chủ đề 3</h1>
+<h2>Rèn luyện bản thân – Nhờ máy làm hộ: được gì và mất gì?</h2>
+<p class="sub">Hãy kiểm tra các tình huống nhờ trí tuệ nhân tạo làm hộ bài tập, tư vấn chi tiêu và nhắc việc rèn luyện. Mỗi câu có 45 giây, đoán mò sẽ không qua được.</p>
+<div class="rules"><div class="rule"><b>20</b><span>câu hỏi</span></div><div class="rule"><b>45 giây</b><span>mỗi câu</span></div><div class="rule"><b>10 điểm</b><span>mỗi câu đúng 0,5 điểm</span></div></div>
+<div class="fields"><div><label for="nm">Họ và tên</label><input id="nm" autocomplete="name" placeholder="Nguyễn Văn A"></div><div><label for="cl">Lớp</label><input id="cl" placeholder="11A8"></div></div>
+<div class="err" id="err"></div>
+<div class="row"><button class="btn" id="go">Bắt đầu nhiệm vụ</button></div>
+</div></section>
+
+<section class="screen" id="s1"><div class="panel">
+<div id="hud"><span class="chip" id="cn">Câu 1/20</span><span class="chip" id="pl"></span><span class="chip" id="sc">Điểm: 0</span></div>
+<div id="bar"><i></i></div>
+<div id="core"><div id="timer"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" stroke="rgba(255,255,255,.12)"/><circle id="ring" cx="100" cy="100" r="90"/></svg><div class="num" id="tn">45</div></div><div id="q"></div></div>
+<div id="opts"></div>
+<div id="fb"></div>
+<div class="row"><button class="btn" id="nx" style="display:none">Câu tiếp theo</button></div>
+</div></section>
+
+<section class="screen" id="s2"><div class="panel">
+<div class="who" id="who"></div>
+<div id="score">0<small>/10</small></div>
+<div class="rank" id="rank"></div>
+<p class="sub" id="meta"></p>
+<div id="rev"></div>
+<div class="row"><button class="btn" id="cp">Sao chép kết quả</button><button class="btn sec" id="re">Chơi lại</button><button class="btn sec" id="rt" style="display:none">Gửi lại</button></div>
+<p class="sub" id="sendst" style="margin-top:10px;min-height:26px"></p>
+<p class="sub" id="cpm" style="margin-top:6px;min-height:26px"></p>
+</div></section>
+</div>
+
+<script>
+const Q=[
+{q:"Nam nhờ AI viết cả bài rồi nộp như bài mình, Hoa tự làm bài nhưng điểm bằng nhau. Đây là loại rủi ro nào?",o:["Rủi ro đạo đức, vì Nam gian dối còn Hoa bị thiệt","Rủi ro pháp lí, vì bài nộp có chứa dữ liệu riêng của người khác","Rủi ro kĩ thuật, vì phần mềm viết bài bị lỗi nặng","Không có rủi ro, vì cả hai bạn đều nộp đúng hạn"],e:"Nam nhận sản phẩm của máy là của mình (không trung thực) và Hoa bị đối xử không công bằng."},
+{q:"Một bạn chụp danh sách cả lớp (họ tên, số điện thoại) gửi vào ứng dụng AI công cộng để chia nhóm. Rủi ro chính là gì?",o:["Rủi ro pháp lí, vì đưa dữ liệu cá nhân ra ngoài","Rủi ro đạo đức, vì làm cả lớp mất thời gian chờ đợi lâu hơn","Rủi ro kĩ thuật, vì ảnh chụp có thể bị mờ đi nhiều","Không có rủi ro, vì ứng dụng này cho dùng miễn phí"],e:"Họ tên, số điện thoại là dữ liệu cá nhân. Đưa ra ngoài khi chưa được phép là va vào quy định bảo vệ dữ liệu cá nhân và nội quy."},
+{q:"Rủi ro đạo đức là việc làm khiến…",o:["người khác bị đối xử bất công hoặc mình mất trung thực","máy tính bị hỏng nặng hoặc nhiễm vi-rút rất nguy hiểm cho dữ liệu","bài làm bị chấm điểm thấp hơn các bạn trong lớp","mình vi phạm nội quy hoặc quy định của pháp luật hiện hành"],e:"Rủi ro đạo đức nói về công bằng và trung thực. Việc va vào nội quy hay pháp luật là rủi ro pháp lí."},
+{q:"Rủi ro pháp lí là việc làm…",o:["va vào nội quy nhà trường hoặc quy định của pháp luật","làm bạn bè không vui và giận mình trong vài ngày liền sau đó","khiến mình không còn trung thực với chính bản thân mình","làm thiết bị bị chậm đi khi dùng nhiều phần mềm"],e:"Rủi ro pháp lí là va vào nội quy nhà trường hoặc quy định của pháp luật, chẳng hạn quy định bảo vệ dữ liệu cá nhân."},
+{q:"Minh nhờ AI viết cả bài thu hoạch, sửa vài chỗ rồi nộp như bài của mình. Điểm số bài ấy phản ánh năng lực của ai?",o:["Chủ yếu của phần mềm, vì phần cốt lõi do máy làm","Hoàn toàn của Minh, vì Minh đã sửa lại vài chỗ trong bài","Của thầy cô, vì thầy cô là người chấm bài ấy","Của cả lớp, vì mọi bạn đều nộp bài thu hoạch"],e:"Ý chính và cách lập luận do máy làm, nên điểm số thành “lời nói dối” về năng lực của Minh."},
+{q:"Cách dùng AI nào trung thực nhất khi làm bài thu hoạch?",o:["Nhờ máy gợi ý, tự viết bài rồi nói rõ đã dùng máy","Nhờ máy viết cả bài rồi chỉ đổi tên mình lên đầu bài và nộp luôn","Nhờ bạn khác dùng AI viết rồi chép lại vào vở","Chép bài trên mạng rồi đổi vài từ cho khác đi"],e:"Máy chỉ gợi ý, mình tự làm phần cốt lõi và nói rõ đã dùng máy thì năng lực được chấm mới là của mình."},
+{q:"AI trả lời “Mỗi tuần chỉ nên chi tối đa 400 nghìn đồng” khi Lan chưa nói mình có bao nhiêu tiền. Vì sao không nên tin ngay?",o:["Máy không biết Lan có bao nhiêu tiền mà vẫn nói chắc","Con số 400 nghìn đồng luôn luôn là con số sai với mọi học sinh","Máy không đọc được số tiền viết bằng chữ số","Lời khuyên của máy luôn trái ý kiến của bố mẹ"],e:"Nghe chắc chắn không có nghĩa là đúng. Lan cần đối chiếu sổ thu chi thật và hỏi người lớn."},
+{q:"Lan làm theo lời khuyên chi tiêu của máy và hết tiền. Ai chịu hậu quả cuối cùng?",o:["Chính Lan và gia đình, vì mất tiền thật của nhà","Phần mềm AI, vì chính nó đã đưa ra lời khuyên ấy","Công ty làm phần mềm, vì họ tạo ra sản phẩm","Không ai chịu, vì đó chỉ là một lời gợi ý thôi"],e:"Phần mềm không chịu gì. Người mất tiền thật là Lan và gia đình."},
+{q:"Hùng nhờ phần mềm nhắc việc rèn luyện. Thông tin nào KHÔNG nên kể cho phần mềm?",o:["Địa chỉ nhà và giờ Hùng ở nhà một mình mỗi ngày","Mục tiêu tập thể dục đều đặn mỗi buổi sáng","Khoảng thời gian rảnh nói chung trong một tuần","Môn thể thao mà Hùng yêu thích nhất hiện nay"],e:"Địa chỉ và giờ ở nhà một mình có thể bị lợi dụng. Chỉ nên kể mục tiêu và giờ rảnh nói chung."},
+{q:"Kể hết chuyện riêng cho phần mềm thì cái mất lớn nhất là gì?",o:["Quyền giữ kín đời tư, và khó lấy lại được","Vài phút gõ chữ để kể hết các chuyện riêng","Một phần pin điện thoại khi dùng ứng dụng","Không mất gì nếu xoá đoạn chat trên màn hình"],e:"Chuyện đã kể nằm trong hệ thống của nhà cung cấp, người vận hành hoặc bên khác có thể tiếp cận. Xoá đoạn chat chưa chắc thu hồi được."},
+{q:"Trước khi nhờ máy làm hộ, câu hỏi nào nên tự hỏi trước tiên?",o:["Việc này có đúng là việc mình phải tự làm không?","Máy nào trả lời nhanh nhất trong các loại máy?","Làm sao để thầy cô không nhận ra việc này?","Bạn nào trong lớp đang dùng cùng ứng dụng đó?"],e:"Nếu đó là việc mình phải tự làm thì đừng đẩy cho máy. Đây là câu hỏi đầu tiên của bộ nguyên tắc dùng AI trung thực."},
+{q:"Khi tranh biện “Nhờ máy viết rồi sửa lại vẫn là bài của mình”, lí lẽ PHẢN ĐỐI nào mạnh nhất?",o:["Khung ý và cách lập luận vẫn do máy làm ra","Máy luôn viết dở hơn so với học sinh trong lớp","Sửa lại bài mất nhiều thời gian hơn tự viết hẳn","Thầy cô chưa bao giờ cho dùng máy tính khi học"],e:"Phần cốt lõi vẫn do máy làm, nên nộp “như của mình” là không trung thực dù có sửa vài chỗ."},
+{q:"Để nhờ AI tư vấn chi tiêu, một bạn nhập cả số dư tài khoản của gia đình. Rủi ro thêm là gì?",o:["Nguy cơ lộ thông tin tài chính của gia đình mình","Nguy cơ máy tính bị nóng lên khi phải chạy ứng dụng lâu","Nguy cơ bị trừ điểm môn học khi thầy cô biết","Nguy cơ ứng dụng hết dung lượng bộ nhớ ngay"],e:"Số dư và tình hình tiền của gia đình là dữ liệu cá nhân. Nhập vào phần mềm có thể làm lộ thông tin."},
+{q:"Cách nào kiểm chứng lời khuyên chi tiêu của máy tốt nhất?",o:["Đối chiếu với sổ thu chi thật rồi hỏi người lớn","Hỏi lại chính phần mềm đó thêm ba bốn lần cho chắc","Chọn con số lớn nhất trong các câu trả lời","Tin luôn nếu câu trả lời nghe có vẻ chắc chắn"],e:"Máy không có số liệu thật của mình. Cần đối chiếu sổ thu chi thật và hỏi bố mẹ hoặc người lớn."},
+{q:"Vì sao câu trả lời nghe rất chắc chắn của AI vẫn có thể sai?",o:["Máy có thể trả lời tự tin dù thiếu dữ liệu thật","Máy luôn cố tình nói sai để thử học sinh","Giọng văn tự tin thì lúc nào cũng là sai","Máy chỉ trả lời đúng khi mình viết hoa hết"],e:"Máy có thể trả lời rất tự tin dù thiếu dữ liệu thật, nên phải kiểm chứng trước khi làm theo."},
+{q:"Trong lời kể của Hùng có cả chuyện của bố mẹ. Vấn đề về đạo đức ở đây là gì?",o:["Kể chuyện người thân khi họ không biết, không đồng ý","Kể quá dài nên máy không đọc kịp hết các ý","Kể bằng tiếng Việt nên máy dễ hiểu sai nghĩa","Kể chuyện gia đình luôn là điều đáng được khen"],e:"Bố mẹ, người thân không được hỏi ý kiến mà chuyện của họ vẫn bị kể ra: đó là thiếu tôn trọng quyền riêng tư."},
+{q:"Thông tin nào nên giữ kín, không đưa cho phần mềm AI?",o:["Số điện thoại, địa chỉ nhà và ảnh của cả nhà","Tên một bài hát mà em đang thích nghe mỗi buổi tối","Môn học em cần ôn tập trước kì kiểm tra sắp tới","Mục tiêu em muốn đạt được trong học kì này"],e:"Số điện thoại, địa chỉ và ảnh của cả nhà là thông tin dễ bị lợi dụng nên cần giữ kín."},
+{q:"Cách dùng AI nào vẫn giữ quyền kiểm soát trong tay con người?",o:["Tự đọc, đối chiếu kĩ rồi mới quyết định dùng lời máy","Dùng luôn câu trả lời đầu tiên mà máy đưa ra","Giao hết quyết định cho máy vì máy không biết mệt","Nhờ máy kiểm tra giùm rồi không xem lại nữa"],e:"Giữ quyền kiểm soát nghĩa là tự đọc, đối chiếu rồi mới quyết định, không giao hết cho máy."},
+{q:"Nhờ máy làm hộ bài tập thì mình mất gì?",o:["Mất trung thực và mất chính năng lực của mình","Mất tiền thật vì phải trả phí cho phần mềm hằng tháng","Mất quyền giữ kín chuyện riêng của gia đình mình","Mất thời gian chờ máy tạo xong bài làm"],e:"Nhờ máy làm hộ bài thì mất trung thực và mất chính năng lực của mình."},
+{q:"Tin lời khuyên chi tiêu của máy rồi làm theo thì mình mất gì?",o:["Mất tiền thật, và người chịu hậu quả là chính mình","Mất trung thực và mất năng lực của chính mình","Mất quyền giữ kín chuyện riêng của gia đình","Mất thời gian chờ máy xử lí các con số"],e:"Làm theo lời khuyên chi tiêu sai thì mất tiền thật, và người chịu là chính mình chứ không phải phần mềm."}
+];
+const $=id=>document.getElementById(id),T=45,C=2*Math.PI*90;
+const fmt=n=>String(n/2).replace(".",",");let name="",cls="",qs=[],i=0,score=0,t0=0,raf=0,lastSec=0,locked=true,log=[],tStart=0,muted=false,ac=null;
+/* ---------- âm thanh ---------- */
+function tone(f,d,type="sine",delay=0,v=.18){if(muted||!ac)return;const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+delay;o.type=type;o.frequency.setValueAtTime(f,s);g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(ac.destination);o.start(s);o.stop(s+d+.05)}
+const sfx={ok(){[523,659,784,1047].forEach((f,k)=>tone(f,.28,"triangle",k*.09))},no(){tone(220,.35,"sawtooth",0,.2);tone(147,.5,"sawtooth",.18,.2)},tick(){tone(880,.08,"square",0,.1)},go(){[330,494,660].forEach((f,k)=>tone(f,.2,"square",k*.08,.1))},end(){[523,659,784,1047,1319].forEach((f,k)=>tone(f,.4,"triangle",k*.12))}};
+$("snd").onclick=()=>{muted=!muted;$("snd").textContent=muted?"🔇":"🔊"};
+/* ---------- nền vũ trụ ---------- */
+const cv=$("bg"),cx=cv.getContext("2d");let W,H,st=[];
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;st=Array.from({length:130},()=>({x:Math.random()*W-W/2,y:Math.random()*H-H/2,z:Math.random()*W}))}
+addEventListener("resize",rs);rs();
+(function loop(){cx.fillStyle="rgba(5,8,22,.35)";cx.fillRect(0,0,W,H);
+for(const s of st){s.z-=2.2;if(s.z<=1){s.x=Math.random()*W-W/2;s.y=Math.random()*H-H/2;s.z=W}
+const k=300/s.z,x=s.x*k+W/2,y=s.y*k+H/2,r=Math.max(.3,(1-s.z/W)*2.6);cx.fillStyle=s.z%3<1?"#8a5cff":"#3df5ff";cx.globalAlpha=1-s.z/W+.15;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()}
+cx.globalAlpha=1;requestAnimationFrame(loop)})();
+/* ---------- trò chơi ---------- */
+const sh=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));scrollTo(0,0)}
+function start(){name=$("nm").value.trim();cls=$("cl").value.trim();
+if(!name||!cls){$("err").textContent="Hãy nhập đủ họ tên và lớp để vào nhiệm vụ.";return}
+$("err").textContent="";ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();
+qs=sh(Q).map(x=>({q:x.q,e:x.e,c:x.o[0],o:sh(x.o)}));i=0;score=0;log=[];tStart=Date.now();$("pl").textContent=name+" · "+cls;sfx.go();show("s1");ask()}
+function ask(){const x=qs[i];locked=false;$("cn").textContent="Câu "+(i+1)+"/20";$("sc").textContent="Điểm: "+fmt(score);$("bar").firstElementChild.style.width=(i/20*100)+"%";
+$("q").textContent=x.q;$("fb").className="";$("fb").style.display="none";$("nx").style.display="none";$("flash").className="";
+$("opts").innerHTML="";x.o.forEach((t,k)=>{const b=document.createElement("button");b.className="opt";b.innerHTML='<span class="l">'+"ABCD"[k]+"</span><span></span>";b.lastChild.textContent=t;b.onclick=()=>pick(k);$("opts").appendChild(b)});
+t0=performance.now();lastSec=T+1;cancelAnimationFrame(raf);tickLoop()}
+function tickLoop(){const left=Math.max(0,T-(performance.now()-t0)/1000),sec=Math.ceil(left);
+$("ring").style.strokeDashoffset=C*(1-left/T)*0+565.5*(1-left/T);$("tn").textContent=sec;
+$("timer").className=sec<=8?"crit":sec<=15?"warn":"";
+if(sec!==lastSec){lastSec=sec;if(sec<=8&&sec>0)sfx.tick()}
+if(left<=0){pick(-1);return}raf=requestAnimationFrame(tickLoop)}
+function pick(k){if(locked)return;locked=true;cancelAnimationFrame(raf);const x=qs[i],ok=k>=0&&x.o[k]===x.c,used=Math.round(Math.min(T,(performance.now()-t0)/1000));
+document.querySelectorAll(".opt").forEach((b,j)=>{b.disabled=true;if(x.o[j]===x.c)b.classList.add("ok");else if(j===k)b.classList.add("no")});
+if(ok){score++;sfx.ok()}else sfx.no();
+log.push({q:x.q,c:x.c,e:x.e,ok,timeout:k<0,pick:k>=0?x.o[k]:"",used});
+$("sc").textContent="Điểm: "+fmt(score);$("flash").className=ok?"ok":"no";setTimeout(()=>{$("flash").className=""},650);
+const fb=$("fb");fb.className=ok?"ok":"no";fb.style.display="block";
+fb.innerHTML="<strong>"+(ok?"Chính xác! +1 điểm":(k<0?"Hết giờ! Không được điểm":"Chưa đúng"))+"</strong>"+(ok?"":"Đáp án đúng: "+x.c+"<br>")+x.e;
+const nx=$("nx");nx.style.display="inline-block";nx.textContent=i===19?"Xem kết quả":"Câu tiếp theo";nx.focus();fb.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function next(){if(i===19)finish();else{i++;ask()}}
+function finish(){const tot=Math.round((Date.now()-tStart)/1000);show("s2");sfx.end();
+$("who").textContent=name+" – Lớp "+cls;
+const sc=$("score");let n=0;const iv=setInterval(()=>{sc.firstChild.nodeValue=fmt(n);if(n++>=score)clearInterval(iv)},70);
+$("rank").textContent=score>=18?"Xuất sắc: Chỉ huy phi đội":score>=14?"Giỏi: Phi công hạng nhất":score>=10?"Khá: Kĩ sư tàu vũ trụ":"Cần luyện thêm: hãy chơi lại để nâng cấp";
+const m=Math.floor(tot/60),s=tot%60;$("meta").textContent="Đúng "+score+"/20 câu · Thời gian làm bài "+m+" phút "+s+" giây";
+$("rev").innerHTML="";log.forEach((r,k)=>{const d=document.createElement("div");d.className="rv "+(r.ok?"ok":"no");
+d.innerHTML="<b>Câu "+(k+1)+(r.ok?" ✓":r.timeout?" ✗ (hết giờ)":" ✗")+"</b> "+(r.ok?"":"Đáp án đúng: ")+"<span></span>";d.lastChild.textContent=r.ok?r.q:r.c;$("rev").appendChild(d)});
+window.RESULT="Họ tên: "+name+" | Lớp: "+cls+" | Điểm: "+fmt(score)+"/10 | Thời gian: "+m+" phút "+s+" giây | Ngày: "+new Date().toLocaleDateString("vi-VN");send()}
+/* ---------- gửi điểm về Google Sheets ---------- */
+const SHEET_URL="https://script.google.com/macros/s/AKfycbzf8Rq9BFeP65JKt3EL84zC8FR-GAvK8Z840gWuULodxIxMDfpGyGnZYSJuP7W6rz05gQ/exec";
+function send(){const st=$("sendst");st.style.color="";
+if(!/^https:\/\/script\.google\.com\//.test(SHEET_URL)){st.textContent="Chưa cài đường dẫn gửi điểm. Hãy báo điểm cho thầy/cô.";return}
+st.textContent="Đang gửi điểm cho thầy/cô…";$("rt").style.display="none";
+fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({name:name,cls:cls,score:score/2})})
+.then(()=>{st.textContent="Đã gửi điểm cho thầy/cô. Em có thể chụp màn hình để lưu.";st.style.color="var(--gr)"})
+.catch(()=>{st.textContent="Chưa gửi được. Hãy kiểm tra mạng rồi bấm Gửi lại.";st.style.color="var(--rd)";$("rt").style.display="inline-block"})}
+$("rt").onclick=send;
+$("go").onclick=start;$("nx").onclick=next;$("re").onclick=()=>{show("s0");$("nm").value=name;$("cl").value=cls};
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText(RESULT);$("cpm").textContent="Đã sao chép. Hãy gửi cho thầy/cô hoặc chụp màn hình này."}catch(e){$("cpm").textContent=RESULT}};
+document.addEventListener("keydown",e=>{if(!$("s1").classList.contains("on"))return;const k="abcd1234".indexOf(e.key.toLowerCase());if(k>=0&&!locked)pick(k%4);else if((e.key==="Enter"||e.key===" ")&&locked&&$("nx").style.display!=="none"){e.preventDefault();next()}});
+$("cl").addEventListener("keydown",e=>{if(e.key==="Enter")start()});
+</script>
+</body>
+</html>
